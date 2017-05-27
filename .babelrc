@@ -5,8 +5,5 @@
       "rootPathPrefix": "@"
     }],
     "transform-object-rest-spread"
-  ],
-  "ignore": [
-    "*.spec.js"
   ]
 }
