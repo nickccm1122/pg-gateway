@@ -1,0 +1,12 @@
+{
+  "presets": ["env"],
+  "plugins": [
+    ["babel-plugin-root-import", {
+      "rootPathPrefix": "@"
+    }],
+    "transform-object-rest-spread"
+  ],
+  "ignore": [
+    "*.spec.js"
+  ]
+}

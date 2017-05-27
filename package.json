@@ -1,0 +1,50 @@
+{
+  "name": "pg-gateway",
+  "version": "1.0.0",
+  "description": "Gateway of payment gateways",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "./node_modules/.bin/babel src --out-dir lib",
+    "lint": "./node_modules/.bin/eslint .",
+    "test": "./node_modules/.bin/mocha --reporter spec lib/**/**.spec.js",
+    "test:watch": "./node_modules/.bin/mocha --watch --reporter spec lib/**/**.spec.js",
+    "jsdoc": "./node_modules/.bin/jsdoc -c jsdoc-conf.json"
+  },
+  "dependencies": {
+    "braintree": "^2.1.1",
+    "dotenv": "^4.0.0",
+    "joi": "^10.5.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-core": "^6.24.1",
+    "babel-plugin-root-import": "^5.1.0",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
+    "babel-polyfill": "https://registry.npmjs.org/babel-polyfill/-/babel-polyfill-6.23.0.tgz",
+    "babel-preset-env": "^1.4.0",
+    "babel-register": "https://registry.npmjs.org/babel-register/-/babel-register-6.24.1.tgz",
+    "chai": "^3.5.0",
+    "chai-as-promised": "^6.0.0",
+    "eslint": "^3.19.0",
+    "eslint-plugin-async-await": "0.0.0",
+    "eslint-plugin-mocha": "^4.9.0",
+    "jsdoc": "^3.4.3",
+    "jsdoc-babel": "^0.3.0",
+    "mocha": "^3.4.1",
+    "nodemon": "^1.11.0",
+    "sinon": "^2.2.0",
+    "sinon-chai": "^2.10.0"
+  },
+  "repository" : { 
+    "type" : "git"
+  , "url" : "https://github.com/nickccm1122/pg-gateway.git"
+  },
+  "keywords": [
+    "api",
+    "braintree",
+    "paypal"
+  ],
+  "author": "Nick Chan",
+  "license": "ISC",
+  "homepage": "https://github.com/nickccm1122/pg-gateway"
+}

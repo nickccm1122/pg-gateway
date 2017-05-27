@@ -1,0 +1,5 @@
+--require test/common
+--require babel-polyfill
+--compilers js:babel-register 
+--reporter dot
+--ui bdd
