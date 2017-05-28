@@ -6,8 +6,8 @@
   "scripts": {
     "build": "./node_modules/.bin/babel src --out-dir lib",
     "lint": "./node_modules/.bin/eslint .",
-    "test": "./node_modules/.bin/mocha --reporter spec src/**/**.spec.js",
-    "test:watch": "./node_modules/.bin/mocha --watch --reporter spec src/**/**.spec.js",
+    "test": "./node_modules/.bin/mocha --reporter spec --recursive src/**",
+    "test:watch": "./node_modules/.bin/mocha --watch --reporter spec --recursive src/**",
     "jsdoc": "./node_modules/.bin/jsdoc -c jsdoc-conf.json"
   },
   "dependencies": {

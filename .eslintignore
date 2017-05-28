@@ -1,3 +1,8 @@
+# Ignore example
+/examples/*
+
 # Ignore build
 /lib/*
 !lib.index.js
+
+**/*.spec.js
