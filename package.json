@@ -5,6 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "./node_modules/.bin/babel src --out-dir lib",
+    "start:example": "NODE_ENV=development nodemon examples/payment/server.js --exec ./node_modules/.bin/babel-node",
     "lint": "./node_modules/.bin/eslint .",
     "test": "./node_modules/.bin/mocha --reporter spec --recursive src/**",
     "test:watch": "./node_modules/.bin/mocha --watch --reporter spec --recursive src/**",
@@ -12,17 +13,20 @@
   },
   "dependencies": {
     "braintree": "^2.1.1",
-    "dotenv": "^4.0.0",
-    "joi": "^10.5.0"
+    "debug": "^2.6.8",
+    "joi": "^10.5.0",
+    "paypal-rest-sdk": "^1.7.1"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-core": "^6.24.1",
     "babel-plugin-root-import": "^5.1.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-polyfill": "^6.23.0",
     "babel-preset-env": "^1.4.0",
     "babel-register": "^6.24.1",
+    "bluebird": "^3.5.0",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "eslint": "^3.19.0",
@@ -30,8 +34,15 @@
     "eslint-plugin-mocha": "^4.9.0",
     "jsdoc": "^3.4.3",
     "jsdoc-babel": "^0.3.0",
+    "koa": "^2.2.0",
+    "koa-bodyparser": "^4.2.0",
+    "koa-convert": "^1.2.0",
+    "koa-force-ssl": "0.0.5",
+    "koa-router": "^7.2.0",
+    "koa2-cors": "^2.0.3",
     "mocha": "^3.4.1",
     "nodemon": "^1.11.0",
+    "redis": "^2.7.1",
     "sinon": "^2.2.0",
     "sinon-chai": "^2.10.0"
   },

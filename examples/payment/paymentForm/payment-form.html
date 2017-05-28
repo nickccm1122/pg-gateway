@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+        .hosted-field {
+            height: 34px;
+            box-sizing: border-box;
+            width: 100%;
+            padding: 12px;
+            /*display: inline-block;*/
+            box-shadow: none;
+            font-weight: 600;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            line-height: 20px;
+            /*background: #fcfcfc;*/
+            margin-bottom: 0;
+            /*background: linear-gradient(to right, white 50%, #fcfcfc 50%);*/
+            /*background-size: 200% 100%;*/
+            /*background-position: right bottom;*/
+            /*transition: all 300ms ease-in-out;*/
+        }
+        /* Braintree Hosted Fields styling classes*/
+        
+        .braintree-hosted-fields-focused {
+            border: 1px solid #0275d8;
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
+        }
+        
+        .braintree-hosted-fields-focused.focused-invalid {
+            border: 1px solid #ebcccc;
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(100, 100, 0, .6);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-md-8 col-md-offset-2">
+                <form id="payment-form" name="payment-form">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Place an order</div>
+                        <div class="panel-body">
+                            <div class="col-md-6">
+                                <h2>Order</h2>
+                                <div class="form-group">
+                                    <label for="user-name">Your Name</label>
+                                    <input type="text" class="form-control" id="user-name" placeholder="Jr. Saving Jor" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="phone-number">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone-number" placeholder="8 digits number" autoCorrect="off" autoComplete="tel" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="price">Price</label>
+                                    <input type="number" class="form-control" id="price" pattern="[0-9]*" min="0" max="1000" value="10" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="price">Currency</label>
+                                    <select id="price">
+                                  <option selected value="HKD">HKD</option>
+                                  <option alue="USD">USD</option>
+                                  <option value="AUD">AUD</option>
+                                  <option value="EUR">EUR</option>
+                                  <option value="JPY">JPY</option>
+                                  <option value="CNY">CNY</option>
+                                </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h2>Payment</h2>
+                                <div class="form-group">
+                                    <label for="name-on-card">Name On Card</label>
+                                    <input type="text" class="form-control" id="name-on-card" placeholder="Jr. Saving Jor" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="card-number">Card Number</label>
+                                    <div id="card-number" class="form-control"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="expiration-date">Expiration Date</label>
+                                    <div id="expiration-date" class="form-control"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cvv">CVV</label>
+                                    <div id="cvv" class="form-control"></div>
+                                </div>
+                                <div>
+                                    <input type="submit" class="center-block btn btn-success" value="Submit Form" />
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+            </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- scripts -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://js.braintreegateway.com/web/3.16.0/js/client.js"></script>
+    <script src="https://js.braintreegateway.com/web/3.16.0/js/hosted-fields.js"></script>
+    <script type="text/javascript">
+        var authorization = "CLIENT_AUTHORIZATION_TOKEN"
+        var paymentForm = document.querySelector('#payment-form');
+
+        // validate the form fields, hostedFieldsInstancs is need for checking.
+        // return the valid fields
+        function validateFields(hostedFieldsInstancs) {
+            var username = document.getElementById("user-name").value;
+            if (!username) return {
+                isValid: false,
+                message: 'Your username field is empty.'
+            }
+
+            var phoneNumber = document.getElementById("phone-number").value;
+            if (!phoneNumber) return {
+                isValid: false,
+                message: 'Your phone number field is empty.'
+            }
+
+            var price = document.getElementById("price").value;
+            if (!price) return {
+                isValid: false,
+                message: 'Your price field is invalid.'
+            }
+
+            var nameOnCard = document.getElementById("name-on-card").value;
+            if (!nameOnCard) return {
+                isValid: false,
+                message: 'Your "Name on Card" field is invalid.'
+            }
+
+            var hostedFieldsState = hostedFieldsInstancs.getState();
+
+            var cardformValid = Object.keys(hostedFieldsState.fields).every(function(key) {
+                return hostedFieldsState.fields[key].isValid;
+            });
+            if (!cardformValid) return {
+                isValid: false,
+                message: 'Your Credit Card field is invalid.'
+            }
+
+            return {
+                isValid: true,
+                username: username,
+                phoneNumber: phoneNumber,
+                price: price,
+                currency: 'HKD',    //todo - hardcode!!!!!
+                nameOnCard: nameOnCard,
+            }
+
+        }
+
+        function submitFormViaPaypal(formData, cb) {
+            console.log(formData)
+            $.post("/paypal", {
+                amount: {
+                    currency: formData.currency,
+                    total: formData.price
+                }
+                })
+                .done(function(data) {
+                    // alert(`Response from server: ${JSON.stringify(data)}`)
+                    console.log('going to ' + data.redirectUrl)
+                    window.location.replace(data.redirectUrl)
+                    cb()
+                });
+        }
+
+        function submitFormViaBraintree(braintreeInstance, formData, cb) {
+            braintreeInstance.tokenize(null, function(error, response) {
+                console.log(response)
+                    // submit to server now
+                $.post("braintree/execute", {
+                    nonce: response.nonce,
+                    amount: formData.price // todo
+                    })
+                    .done(function(data) {
+                        alert(`Response from server: ${JSON.stringify(data)}`)
+                        cb()
+                    });
+            })
+        }
+
+
+        //TODO: logic for gateway selection - 2017-05-31
+        function selectGateway(currency, cardType) {
+            return 'paypal'
+        }
+
+        function createHostedFields(clientInstance) {
+            braintree.hostedFields.create({
+                client: clientInstance,
+                styles: {
+                    'input': {
+                        'font-size': '14px',
+                        'font-family': 'helvetica, tahoma, calibri, sans-serif',
+                        'color': '#3a3a3a'
+                    },
+                    ':focus': {
+                        'color': 'black'
+                    }
+                },
+                fields: {
+                    number: {
+                        selector: '#card-number',
+                        placeholder: '4111 1111 1111 1111'
+                    },
+                    cvv: {
+                        selector: '#cvv',
+                        placeholder: '123'
+                    },
+                    expirationDate: {
+                        selector: '#expiration-date',
+                        placeholder: 'MM/YYYY'
+                    }
+                }
+            }, function(err, hostedFieldsInstance) {
+
+                // Reset card fields
+                var teardown = function() {
+                    hostedFieldsInstance.teardown(function() {
+                        createHostedFields(clientInstance);
+                        paymentForm.removeEventListener('submit', submitForm, false);
+                    });
+                    paymentForm.addEventListener('submit', submitForm, false);
+                }
+
+                var submitForm = function(event) {
+                    event.preventDefault();
+
+                    var state = hostedFieldsInstance.getState()
+                    var formValid = Object.keys(state.fields).every(function(key) {
+                        return state.fields[key].isValid;
+                    });
+
+                    // Validate form fields
+                    var formData = validateFields(hostedFieldsInstance)
+
+                    if (formData.isValid) {
+                        var selectedGateway = selectGateway()
+                        switch (selectedGateway) {
+                            case 'paypal':
+                                submitFormViaPaypal(formData, teardown)
+                                break;
+                            case 'braintree':
+                                submitFormViaBraintree(hostedFieldsInstance, formData, teardown)
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        // Alert invalid messages
+                        alert(formData.message)
+                    }
+                };
+
+                paymentForm.addEventListener('submit', submitForm, false);
+            });
+        }
+
+        // Initialize the braintree hosted fields
+        braintree.client.create({
+            authorization: authorization
+        }, function(err, clientInstance) {
+            if (err) {
+                console.error(err);
+                return;
+            }
+            createHostedFields(clientInstance);
+        });
+    </script>
+</body>
+
+</html>

@@ -5,8 +5,7 @@
 export default class BaseGateway {
   constructor(params) {
     this._name = params.name
-    this._instance = params._instance
+    this._instance = params.instance
+    
   }
-
-
 }

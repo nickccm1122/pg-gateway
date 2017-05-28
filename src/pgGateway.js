@@ -1,4 +1,5 @@
-import { classifyPayment } from './helpers/classifyPayment';
+import logger from './logger'
+
 /**
  * @export
  * @class PGGateway
@@ -6,8 +7,9 @@ import { classifyPayment } from './helpers/classifyPayment';
 export default class PGGateway {
   constructor() {
     this._gateways = {}
-    this._selectionRule = classifyPayment
     this._isSandbox = true
+    this._onPaymentInited = this.onPaymentInited.bind(this)
+    this._onPaymentApproved = this.onPaymentApproved.bind(this)
   }
 
   /**
@@ -22,45 +24,66 @@ export default class PGGateway {
   use(name, gateway) {
     if (!gateway) {
       gateway = name
-      name = gateway.name
+      name = gateway._name
     }
     if (!name) throw new Error('Gateway must have a name!')
 
     this._gateways[name] = gateway
+    this[name] = this._gateways[name] // also create a reference as member prop)
     return this
   }
 
   /**
-   * Add logic to decide which payment to use.
-   * There is a default logic if no input is provided.
-   * 
-   * The provided method will have an object with currency and cardType as input.
-   * 
-   * The provided method must return a object with a name of the selected Payment
-   * 
-   * @example 
-   * addDeaddDecisionLogic(({currency, cardType}) => {
-   *  ...logic...
-   *  return {
-   *    selectedPayment: 'BRAINTREE' // your defined name of payment or default.
-   *    isValid: true   // To indicate the payment can be keep processing
-   *    reason: null    // Optional. set to some value if the payment can't be processed.
-   *  }
-   * })
+   * Return a middleware
    * 
    * @memberof PGGateway
    */
-  addDecisionRule(inputMethod) {
-    this._selectionRule = inputMethod
+  init(params) {
+    const {onPaymentInited, onPaymentApproved} = params || {}
+
+    if (onPaymentInited) {
+      this._onPaymentInited = onPaymentInited
+    }
+
+    if (onPaymentApproved) {
+      this._onPaymentApproved = onPaymentApproved
+    }
+
+    return async (ctx, next) => {
+      ctx.pgGateway = this
+      await next()
+    }
   }
 
   /**
-   * high level method to create transaction
+   * Default action onPaymentInited
+   * 
+   * @param {any} params 
    * 
    * @memberof PGGateway
    */
-  createTransaction() {
-    
+  onPaymentInited(params) {
+    logger('PGGateway - onPaymentInited: %s', JSON.stringify(params))
+    return false
   }
 
+  /**
+   * Default action onPaymentApproved
+   * 
+   * @param {any} params 
+   * 
+   * @memberof PGGateway
+   */
+  onPaymentApproved(params) {
+    logger('PGGateway - onPaymentApproved: %s', JSON.stringify(params))
+    return false
+  }
+
+  loadPaymentCreated() {
+    return false
+  }
+
+  loadPaymentApproved() {
+    return false
+  }
 }
