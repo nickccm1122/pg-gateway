@@ -2,6 +2,7 @@
  * Configure pg-gateway
  */
 import PGGateway, { BraintreeGateway, RestPaypalGateway } from '../../src';
+import { Order } from './db/order';
 
 
 export default function configurePgGateway() {
@@ -25,7 +26,9 @@ export default function configurePgGateway() {
     paypalClientId: 'AbVGZ5Tc_2HKOYaIpiXPm_JHXbMECy7J7WnTyP2y4n3LsHfjwHvNE9XPHVPVHuF2qv8fVKm5qJ9U3txS',
     paypalSecret: 'EOBxs78isIeg7myFaReh0rw-eTC_y47TETI5vT5-AfMB6i1FtmwopA-OY_RV6bJTlU3yMU34IbzbI9Xv',
     returnUrl: 'http://localhost:3000/paypal/execute',
-    cancelUrl: 'http://localhost:3000/'
+    cancelUrl: 'http://localhost:3000/',
+    onPaymentCreated: Order.save,
+    onPaymentExecuted: Order.getById
   })
 
   PGGateway.use(braintree)

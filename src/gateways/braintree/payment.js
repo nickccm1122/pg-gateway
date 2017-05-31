@@ -86,26 +86,50 @@ export class BraintreeGateway extends BaseGateway {
       throw new Error('You have no pgGateway initialized.')
     }
 
-    const { nonce, amount } = ctx.request.body
+    const { nonce, order } = ctx.request.body
 
     logger(nonce)
-    logger(amount)
+    logger(order)
     const response = await this._instance.transaction.sale({
-      amount: amount,
+      amount: order.price,
       paymentMethodNonce: nonce,
       options: {
         submitForSettlement: true
       }
     })
 
-    // logger(response)
     if (response && response.success) {
-      // console.log(ctx.pgGateway._onPaymentApproved)
-      if (ctx.pgGateway && ctx.pgGateway._onPaymentApproved)
-        await ctx.pgGateway.onPaymentApproved(this._name, {
-          amount: amount
-        }, response.transaction)
+      logger(response)
+      const result =  await this.saveToDB(ctx, response)
+
+      ctx.body =  result ? result : {
+        success: true
+      }
+    } 
+  }
+
+  /**
+   * Save approved payment into cache
+   * 
+   * @param {object} ctx 
+   * @param {object} resFromBraintree 
+   * @returns {object} object containing refId, username
+   * 
+   * @member BraintreeGateway#saveToDB
+   * @private
+   */
+  async saveToDB(ctx, resFromBraintree) {
+    const { order } = ctx.request.body
+    let result
+
+    if (ctx.pgGateway && ctx.pgGateway.onPaymentApproved) {
+      result = await ctx.pgGateway.onPaymentApproved(this._name, {
+        ...order
+      }, resFromBraintree.transaction)
     }
-    ctx.body = response.success
+
+    logger(result)
+
+    return result
   }
 }

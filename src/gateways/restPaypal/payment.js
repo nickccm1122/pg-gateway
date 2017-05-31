@@ -13,6 +13,8 @@ export class RestPaypalGateway extends BaseGateway {
 
     this._RETURN_URL = params.returnUrl
     this._CANCEL_URL = params.cancelUrl
+    this._onPaymentCreated = params.onPaymentCreated
+    this._onPaymentExecuted = params.onPaymentExecuted
 
     /**
      * Middlewares supported by this gateway
@@ -48,7 +50,9 @@ export class RestPaypalGateway extends BaseGateway {
    *    paypalClientId: 'AbVGZ5Tc_2HKOYaIpiXPm_JHXbMECy7J7WnTyP2y4n3LsHfjwHvNE9XPHVPVHuF2qv8fVKm5qJ9U3txS',
    *    paypalSecret: 'EOBxs78isIeg7myFaReh0rw-eTC_y47TETI5vT5-AfMB6i1FtmwopA-OY_RV6bJTlU3yMU34IbzbI9Xv',
    *    returnUrl: 'http://localhost:3000/paypal/execute',
-   *    cancelUrl: 'http://localhost:3000/'
+   *    cancelUrl: 'http://localhost:3000/',
+   *    onPaymentCreated: (id, order) => { //cache the order }
+   *    onPaymentExecuted: (key) => { //retrive the cached order}
    * }))
    */
   static init(options) {
@@ -70,7 +74,9 @@ export class RestPaypalGateway extends BaseGateway {
       instance: paypal,
       name: 'REST_PAYPAL',
       returnUrl: config.returnUrl,
-      cancelUrl: config.cancelUrl
+      cancelUrl: config.cancelUrl,
+      onPaymentCreated: config.onPaymentCreated,
+      onPaymentExecuted: config.onPaymentExecuted,
     })
 
     return newGateway
@@ -91,9 +97,9 @@ export class RestPaypalGateway extends BaseGateway {
 
     logger('Incoming request body: ' + JSON.stringify(ctx.request.body))
 
-    const { amount } = ctx.request.body
+    const { order } = ctx.request.body
 
-    if (!amount) {
+    if (!order && order.price) {
       ctx.throw(400, 'You have no amount values')
     }
 
@@ -107,12 +113,16 @@ export class RestPaypalGateway extends BaseGateway {
         'cancel_url': this._CANCEL_URL
       },
       'transactions': [{
-        'amount': amount
+        'amount': {
+          'total':order.price,
+          'currency': order.currency
+        }
       }]
     }
 
+
     try {
-      const payment = await new Promise((resolve, reject) => {
+      const response = await new Promise((resolve, reject) => {
         this._instance.payment.create(createPaymentJson, (error, payment) => {
           if (error) {
             reject(error)
@@ -122,8 +132,14 @@ export class RestPaypalGateway extends BaseGateway {
         })
       })
 
+      /**
+       * cache the order
+       */
+      logger(this._onPaymentCreated)
+      this._onPaymentCreated(response.id, order)
+
       // redirect the user to paypal payment auth
-      const redirectUrl = payment.links.find(link => {
+      const redirectUrl = response.links.find(link => {
         return link.rel === 'approval_url'
       }).href
 
@@ -136,7 +152,6 @@ export class RestPaypalGateway extends BaseGateway {
     } catch (error) {
       ctx.throw(500, 'Cannot initialize payment with paypal.')
     }
-
   }
 
 
@@ -158,7 +173,7 @@ export class RestPaypalGateway extends BaseGateway {
     const { paymentId, PayerID } = ctx.query
     let paymentObj, approvedPayment
 
-    // 2. execute
+    // 1. execute
     if (!paymentObj) {
       approvedPayment = await new Promise((resolve, reject) => {
         paypal.payment.execute(paymentId, {payer_id: PayerID}, function (error, payment) {
@@ -171,18 +186,44 @@ export class RestPaypalGateway extends BaseGateway {
       })
     }
 
+    // 2. retrive order cache
+    const order = await this._onPaymentExecuted(approvedPayment.id) 
+
     // 3. save cache
     if (approvedPayment && approvedPayment.state === 'approved') {
-      if(ctx.pgGateway && ctx.pgGateway._onPaymentApproved)
-        ctx.pgGateway.onPaymentApproved(this._name, {
-          amount: 10
-        }, paymentObj)
+      logger(approvedPayment)
+      const result = await this.saveToDB(ctx, approvedPayment, order)
+      
+      ctx.body = result ? result : {
+        success: true
+      }
     }
 
-    // 4. return 200 to client
-    ctx.body = approvedPayment
+  }
 
+  /**
+   * Save approved payment into cache
+   * 
+   * @param {object} ctx 
+   * @param {object} resFromBraintree 
+   * @param {object} order order from cache
+   * @returns {object} object containing refId, username
+   * 
+   * @member RestPaypalGateway#saveToDB
+   * @private
+   */
+  async saveToDB(ctx, approvedPayment, order) {
+    let result
 
+    if (ctx.pgGateway && ctx.pgGateway.onPaymentApproved) {
+      result = await ctx.pgGateway.onPaymentApproved(this._name, {
+        ...order
+      }, approvedPayment)
+    }
+
+    logger(result)
+
+    return result
   }
 
   /**

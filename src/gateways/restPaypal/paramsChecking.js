@@ -13,7 +13,9 @@ export function validateConfigParams(params) {
     paypalClientId: joi.string().required(),
     paypalSecret: joi.string().required(),
     returnUrl: joi.string().required(),
-    cancelUrl: joi.string().required()
+    cancelUrl: joi.string().required(),
+    onPaymentCreated: joi.func().required(),
+    onPaymentExecuted: joi.func().required(),
   }).unknown()
 
   return joi.validate(params, envVarsSchema, { stripUnknown: true })
