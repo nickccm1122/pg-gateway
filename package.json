@@ -9,7 +9,8 @@
     "lint": "./node_modules/.bin/eslint .",
     "test": "./node_modules/.bin/mocha --reporter spec --recursive src/**",
     "test:watch": "./node_modules/.bin/mocha --watch --reporter spec --recursive src/**",
-    "docs": "./node_modules/.bin/gulp docs"
+    "docs": "./node_modules/.bin/gulp docs",
+    "docs:watch": "./node_modules/.bin/gulp docs:watch"
   },
   "dependencies": {
     "braintree": "^2.1.1",

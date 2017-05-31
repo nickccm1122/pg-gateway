@@ -5,7 +5,7 @@ import debug from 'debug'
  * 
  * @export
  * @param {any} params 
- * @returns 
+ * @returns {function}
  */
 export default function logger(params) {
   return debug('pg-gateway')(params)

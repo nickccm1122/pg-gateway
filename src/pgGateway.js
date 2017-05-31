@@ -1,25 +1,54 @@
 import logger from './logger'
 
 /**
- * @export
  * @class PGGateway
  */
 export default class PGGateway {
   constructor() {
     this._gateways = {}
     this._isSandbox = true
-    this._onPaymentInited = this.onPaymentInited.bind(this)
-    this._onPaymentApproved = this.onPaymentApproved.bind(this)
+
+    /**
+     * Default action onPaymentInited, can be overrided using PGGateway.init method. This is also can be access thru ctx.pgGateway.onPaymentInited
+     * @param {object} order Order
+     * @param {object} response Response from 3th party gateway
+     * @return {object|false}
+     * @member PGGateway#onPaymentInited()
+     */
+    this.onPaymentInited = this._onPaymentInited.bind(this)
+      /**
+       * Default action onPaymentApproved, can be overrided using PGGateway.init method. This is also can be access thru ctx.pgGateway.onPaymentApproved
+       * @param {string} gatewayName Gateway name
+       * @param {object} order Order object
+       * @param {object} response Response from 3th party gateway
+       * @return {object|false}
+       * @member PGGateway#onPaymentApproved()
+       */
+    this.onPaymentApproved = this._onPaymentApproved.bind(this)
+      /**
+       * Default action loadPaymentCreated, can be overrided using PGGateway.init method. This is also can be access thru ctx.pgGateway.loadPaymentCreated
+       * @param {string} refId Reference Id
+       * @return {object|false}
+       * @member PGGateway#loadPaymentCreated()
+       */
+    this.loadPaymentCreated = this._loadPaymentCreated.bind(this)
+      /**
+       * Default action loadPaymentApproved, can be overrided using PGGateway.init method. This is also can be access thru ctx.pgGateway.loadPaymentApproved
+       * @param {string} refId Reference Id
+       * @param {string} username User Name
+       * @return {object|false}
+       * @member PGGateway#loadPaymentApproved()
+       */
+    this.loadPaymentApproved = this._loadPaymentApproved.bind(this)
   }
 
   /**
-   * Add configured payment gateway
+   * Add new configured payment gateway
    * 
-   * @param {string} name - the payment that name will be identified by this Object
-   * @param {BaseGateway} gateway - Payment gateway 
-   * @returns {object} - The object itself
-   * 
-   * @memberof PGGateway
+   * @param {string} name Custom name that used to identify the gateway being added
+   * @param {BaseGateway} gateway Payment gateway extends class BaseGateway
+   * @returns {object} self
+   * @member PGGateway#use()
    */
   use(name, gateway) {
     if (!gateway) {
@@ -34,22 +63,59 @@ export default class PGGateway {
   }
 
   /**
-   * Return a middleware
+   * Return a middleware to inject pgGateway into request's context
    * 
-   * @memberof PGGateway
+   * @param {object} options Options
+   * @param {function} options.onPaymentInited Function that will be performed when payment is inited
+   * @param {function} options.onPaymentApproved Function that will be performed when payment is approved( or confirmed by 3th party gateway)
+   * @param {function} options.loadPaymentCreated Function to retrive data from database for payment created
+   * @param {function} options.loadPaymentApproved Function to retrive data from database for payment approved
+   * @member PGGateway#init()
+   * @public
+   * @return {function} middleware
+   * 
+   * @example 
+   * import PgGateway from 'pg-gateway'
+   * 
+   * PgGateway.use(new BraintreeGateway({
+   *  ...configs
+   * }))
+   * 
+   * // To inject pgGateway into request's context
+   * router.use(PgGateway.init({
+   *  onPaymentApproved: (params) => {
+   *    //...save data into db
+   * },
+   *  loadPaymentApproved: (refId, userName) => {
+   *    //...retrive data from db
+   * }
+   * }))
    */
-  init(params) {
-    const {onPaymentInited, onPaymentApproved} = params || {}
+  init(options) {
+    const {
+      onPaymentInited,
+      onPaymentApproved,
+      loadPaymentCreated,
+      loadPaymentApproved
+    } = options || {}
 
     if (onPaymentInited) {
-      this._onPaymentInited = onPaymentInited
+      this.onPaymentInited = onPaymentInited
     }
 
     if (onPaymentApproved) {
-      this._onPaymentApproved = onPaymentApproved
+      this.onPaymentApproved = onPaymentApproved
     }
 
-    return async (ctx, next) => {
+    if (loadPaymentCreated) {
+      this.loadPaymentCreated = loadPaymentCreated
+    }
+
+    if (loadPaymentApproved) {
+      this.loadPaymentApproved = loadPaymentApproved
+    }
+
+    return async(ctx, next) => {
       ctx.pgGateway = this
       await next()
     }
@@ -60,9 +126,11 @@ export default class PGGateway {
    * 
    * @param {any} params 
    * 
-   * @memberof PGGateway
+   * @member PGGateway#onPaymentInited
+   * @private 
+   * 
    */
-  onPaymentInited(params) {
+  _onPaymentInited(params) {
     logger('PGGateway - onPaymentInited: %s', JSON.stringify(params))
     return false
   }
@@ -72,18 +140,35 @@ export default class PGGateway {
    * 
    * @param {any} params 
    * 
-   * @memberof PGGateway
+   * @member PGGateway#onPaymentApproved
+   * @private 
    */
-  onPaymentApproved(params) {
+  _onPaymentApproved(params) {
     logger('PGGateway - onPaymentApproved: %s', JSON.stringify(params))
     return false
   }
 
-  loadPaymentCreated() {
+  /**
+   * Default action loadPaymentCreated
+   * 
+   * @returns [object|false]
+   * 
+   * @member PGGateway#loadPaymentCreated
+   * @private
+   */
+  _loadPaymentCreated(refId, userName) {
     return false
   }
 
-  loadPaymentApproved() {
+  /**
+   * Default action loadPaymentApproved
+   * 
+   * @returns [object|false]
+   * 
+   * @member PGGateway#loadPaymentApproved
+   * @private
+   */
+  _loadPaymentApproved() {
     return false
   }
 }

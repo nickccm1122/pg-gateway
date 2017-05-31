@@ -3,6 +3,10 @@ import paypal from 'paypal-rest-sdk'
 import { validateConfigParams } from './paramsChecking'
 import logger from '../../logger'
 
+/**
+ * @class RestPaypalGateway - Provide middleware to handle payments
+ * @extends BaseGateway
+ */
 export class RestPaypalGateway extends BaseGateway {
   constructor(params) {
     super(params)
@@ -20,8 +24,35 @@ export class RestPaypalGateway extends BaseGateway {
     }
   }
 
-  static init(params) {
-    const { error, value: config } = validateConfigParams(params)
+  /**
+   * Single entry to create a well-configured braintree gateway
+   * 
+   * @param {object} options Options
+   * @param {boolean} options.isSandbox 
+   * @param {string} options.paypalClientId 
+   * @param {string} options.paypalSecret 
+   * @param {string} options.returnUrl
+   * @param {string} options.cancelUrl 
+   *
+   * @return {object} new RestPaypalGateway
+   * @static 
+   * @method RestPaypalGateway#init
+   * 
+   * @example 
+   * 
+   * import PGGateway from 'pg-gateway'
+   * import { RestPaypalGateway } from '..path'
+   * 
+   * PGGateway.use(RestPaypalGateway.init({
+   *    isSandbox: true,
+   *    paypalClientId: 'AbVGZ5Tc_2HKOYaIpiXPm_JHXbMECy7J7WnTyP2y4n3LsHfjwHvNE9XPHVPVHuF2qv8fVKm5qJ9U3txS',
+   *    paypalSecret: 'EOBxs78isIeg7myFaReh0rw-eTC_y47TETI5vT5-AfMB6i1FtmwopA-OY_RV6bJTlU3yMU34IbzbI9Xv',
+   *    returnUrl: 'http://localhost:3000/paypal/execute',
+   *    cancelUrl: 'http://localhost:3000/'
+   * }))
+   */
+  static init(options) {
+    const { error, value: config } = validateConfigParams(options)
     if (error) {
       throw new Error(`Config validation error: ${error.message}`)
     }
@@ -45,6 +76,14 @@ export class RestPaypalGateway extends BaseGateway {
     return newGateway
   }
 
+  /**
+   * Middleware to create paypal payment
+   * 
+   * @param {any} ctx 
+   * @param {any} next 
+   * @return {promise} 
+   * @method RestPaypalGateway#createPayment
+   */
   async createPayment(ctx, next) {
     if (!ctx.pgGateway) {
       throw new Error('You have no pgGateway initialized.')
@@ -100,6 +139,14 @@ export class RestPaypalGateway extends BaseGateway {
 
   }
 
+
+  /**
+   * Middleware to execute paypal payment
+   * 
+   * @param {any} ctx 
+   * @return {promise} 
+   * @method RestPaypalGateway#executePayment
+   */
   async executePayment(ctx) {
     if (!ctx.pgGateway) {
       throw new Error('You have no pgGateway initialized.')
@@ -127,7 +174,7 @@ export class RestPaypalGateway extends BaseGateway {
     // 3. save cache
     if (approvedPayment && approvedPayment.state === 'approved') {
       if(ctx.pgGateway && ctx.pgGateway._onPaymentApproved)
-        ctx.pgGateway._onPaymentApproved(this._name, {
+        ctx.pgGateway.onPaymentApproved(this._name, {
           amount: 10
         }, paymentObj)
     }
@@ -138,6 +185,13 @@ export class RestPaypalGateway extends BaseGateway {
 
   }
 
+  /**
+   * Middleware to check paypal payment
+   * 
+   * @param {any} ctx 
+   * @return {promise} 
+   * @method RestPaypalGateway#checkPayment
+   */
   async checkPayment(ctx, next) {
     await next()
   }

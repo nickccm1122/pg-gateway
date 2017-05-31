@@ -3,6 +3,10 @@ import braintree from 'braintree'
 import { validateConfigParams } from './paramsChecking'
 import logger from '../../logger'
 
+/**
+ * @class BraintreeGateway - Provide middleware to handle payments
+ * @extends BaseGateway
+ */
 export class BraintreeGateway extends BaseGateway {
   constructor(params) {
     super(params)
@@ -14,14 +18,30 @@ export class BraintreeGateway extends BaseGateway {
   }
 
   /**
-   * single entry to create a well-configured braintree gateway
+   * Single entry to create a well-configured braintree gateway
    * 
-   * @static
+   * @param {object} options Options
+   * @param {boolean} options.isSandbox 
+   * @param {string} options.BRAINTREE_MERCHANT_ID 
+   * @param {string} options.BRAINTREE_PUBLIC_KEY 
+   * @param {string} options.BRAINTREE_PRIVATE_KEY 
+   * @method BraintreeGateway#init
+   * @static 
+   * @return {object} new BraintreeGateway
+   * @example 
+   * import PGGateway from 'pg-gateway'
+   * import { BraintreeGateway } from '..path'
    * 
-   * @memberof BraintreeGateway
+   * PGGateway.use(BraintreeGateway.init({
+   *    isSandbox: true,
+   *    BRAINTREE_MERCHANT_ID: 'cx48wn2djqx2m4db',
+   *    BRAINTREE_PUBLIC_KEY: '3zw4pzcmg46jbt77',
+   *    BRAINTREE_PRIVATE_KEY: '01418a6cb6f2ab403dd8e61620934c96'
+   * }))
+   * 
    */
-  static init(params) {
-    const { error, value: config } = validateConfigParams(params)
+  static init(options) {
+    const { error, value: config } = validateConfigParams(options)
     if (error) {
       throw new Error(`Config validation error: ${error.message}`)
     }
@@ -42,9 +62,10 @@ export class BraintreeGateway extends BaseGateway {
   }
 
   /**
-   * middleware to create braintree client token
+   * Middleware to create braintree client token
    * 
-   * @memberof BraintreeGateway
+   * @return {object} Response from braintree.clientToken.generate()
+   * @method BraintreeGateway#createToken
    */
   async createToken() {
     // logger(this._instance.clientToken)
@@ -52,12 +73,12 @@ export class BraintreeGateway extends BaseGateway {
   }
 
   /**
-   * middleware to execute payment after receiving payment nonce from client
+   * Middleware to execute payment after receiving payment nonce from client
    * 
    * @param {Object} ctx 
    * @param {Function} next 
    * 
-   * @memberof BraintreeGateway
+   * @method BraintreeGateway#executePayment
    */
   async executePayment(ctx, next) {
 
@@ -81,7 +102,7 @@ export class BraintreeGateway extends BaseGateway {
     if (response && response.success) {
       // console.log(ctx.pgGateway._onPaymentApproved)
       if (ctx.pgGateway && ctx.pgGateway._onPaymentApproved)
-        await ctx.pgGateway._onPaymentApproved(this._name, {
+        await ctx.pgGateway.onPaymentApproved(this._name, {
           amount: amount
         }, response.transaction)
     }

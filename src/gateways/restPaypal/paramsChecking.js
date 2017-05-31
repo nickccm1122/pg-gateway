@@ -5,7 +5,7 @@ import joi from 'joi'
  * 
  * @export
  * @param {object} params - the input params pass to PaypalGateway.init()
- * @returns 
+ * @returns {object}
  */
 export function validateConfigParams(params) {
   const envVarsSchema = joi.object().keys({
