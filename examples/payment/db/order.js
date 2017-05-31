@@ -51,7 +51,6 @@ class OrderModel {
     let parsedReturn
     try {
       const ret = await client.hgetallAsync(key)
-      console.log(ret)
 
       if (ret) {
         parsedReturn = Object.keys(ret).reduce((acc, key) => {
@@ -70,7 +69,7 @@ class OrderModel {
       throw new Error(error)
     }
 
-    return parsedReturn ? parsedReturn : false
+    return parsedReturn.order ? parsedReturn.order : false
   }
 }
 

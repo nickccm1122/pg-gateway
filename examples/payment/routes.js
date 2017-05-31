@@ -40,14 +40,16 @@ router.post('/check-payment', async(ctx) => {
 
   const cache = await Payment.getByRefId(form.refCode)
 
-  if (!cache ||cache.order.username !== form.username) {
+  console.log(cache.order)
+  console.log(form.username)
+
+  if (!cache || cache.order.username !== form.username) {
     ctx.body = {
       success: false,
-      message: 'Record No Found'
+      message: 'Record Not Found'
     }
     return
   } else {
-    console.log(cache.order)
     ctx.body = {
       success: true,
       message: 'successfully found',

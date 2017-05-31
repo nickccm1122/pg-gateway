@@ -4,6 +4,7 @@ import { validateConfigParams } from './paramsChecking'
 import logger from '../../logger'
 
 /**
+ * 
  * @class BraintreeGateway - Provide middleware to handle payments
  * @extends BaseGateway
  */
@@ -38,6 +39,14 @@ export class BraintreeGateway extends BaseGateway {
    *    BRAINTREE_PUBLIC_KEY: '3zw4pzcmg46jbt77',
    *    BRAINTREE_PRIVATE_KEY: '01418a6cb6f2ab403dd8e61620934c96'
    * }))
+   * 
+   * // this instance will expose 2 function
+   * // - createToken: function to create client token
+   * // - execute: middleware to process payment
+   * //
+   * // you may access thru 
+   * // - pgGateway.BRAINTREE.member.createToken or 
+   * // - pgGateway.BRAINTREE.member.execute
    * 
    */
   static init(options) {

@@ -22,7 +22,6 @@ export class RestPaypalGateway extends BaseGateway {
     this.members = {
       create: this.createPayment.bind(this),
       execute: this.executePayment.bind(this),
-      checkPayment: this.checkPayment.bind(this)
     }
   }
 
@@ -54,6 +53,14 @@ export class RestPaypalGateway extends BaseGateway {
    *    onPaymentCreated: (id, order) => { //cache the order }
    *    onPaymentExecuted: (key) => { //retrive the cached order}
    * }))
+   * 
+   * // this instance will expose 2 functions
+   * // - create: function to create payment and send to paypal
+   * // - execute: middleware to process payment
+   * //
+   * // you may access thru 
+   * // - pgGateway.BRAINTREE.member.create or 
+   * // - pgGateway.BRAINTREE.member.execute 
    */
   static init(options) {
     const { error, value: config } = validateConfigParams(options)
@@ -189,9 +196,12 @@ export class RestPaypalGateway extends BaseGateway {
     // 2. retrive order cache
     const order = await this._onPaymentExecuted(approvedPayment.id) 
 
+    logger('what is the order??...')
+    logger(order)
     // 3. save cache
     if (approvedPayment && approvedPayment.state === 'approved') {
       logger(approvedPayment)
+      logger('saveToDB...')
       const result = await this.saveToDB(ctx, approvedPayment, order)
       
       ctx.body = result ? { refCode: result, message: 'Please use the refCode and username to check your payment, Go to http://localhost:3000/check-payment'} : {
@@ -214,26 +224,17 @@ export class RestPaypalGateway extends BaseGateway {
    */
   async saveToDB(ctx, approvedPayment, order) {
     let result
+    logger('OMG')
+    logger(order)
 
     if (ctx.pgGateway && ctx.pgGateway.onPaymentApproved) {
       result = await ctx.pgGateway.onPaymentApproved(this._name, {
         ...order
       }, approvedPayment)
     }
-
+    
     logger(result)
 
     return result
-  }
-
-  /**
-   * Middleware to check paypal payment
-   * 
-   * @param {any} ctx 
-   * @return {promise} 
-   * @method RestPaypalGateway#checkPayment
-   */
-  async checkPayment(ctx, next) {
-    await next()
   }
 }

@@ -27,8 +27,8 @@ export default function configurePgGateway() {
     paypalSecret: 'EOBxs78isIeg7myFaReh0rw-eTC_y47TETI5vT5-AfMB6i1FtmwopA-OY_RV6bJTlU3yMU34IbzbI9Xv',
     returnUrl: 'http://localhost:3000/paypal/execute',
     cancelUrl: 'http://localhost:3000/',
-    onPaymentCreated: Order.save,
-    onPaymentExecuted: Order.getById
+    onPaymentCreated: Order.save.bind(Order),
+    onPaymentExecuted: Order.getById.bind(Order)
   })
 
   PGGateway.use(braintree)
