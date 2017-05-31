@@ -1,7 +1,7 @@
 /**
  * Configure pg-gateway
  */
-import PGGateway, { BraintreeGateway, RestPaypalGateway } from '../../src';
+import PGGateway, { BraintreeGateway, RestPaypalGateway } from '../../';
 import { Order } from './db/order';
 
 

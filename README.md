@@ -174,7 +174,9 @@ PGGateway.use(RestPaypalGateway.init({
    paypalClientId: 'AbVGZ5Tc_2HKOYaIpiXPm_JHXbMECy7J7WnTyP2y4n3LsHfjwHvNE9XPHVPVHuF2qv8fVKm5qJ9U3txS',
    paypalSecret: 'EOBxs78isIeg7myFaReh0rw-eTC_y47TETI5vT5-AfMB6i1FtmwopA-OY_RV6bJTlU3yMU34IbzbI9Xv',
    returnUrl: 'http://localhost:3000/paypal/execute',
-   cancelUrl: 'http://localhost:3000/'
+   cancelUrl: 'http://localhost:3000/',
+   onPaymentCreated: (id, order) => { //cache the order }
+   onPaymentExecuted: (key) => { //retrive the cached order}
 }))
 ```
 <a name="RestPaypalGateway+createPayment"></a>

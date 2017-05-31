@@ -66,6 +66,7 @@ router.post('/check-payment', async(ctx) => {
  * /braintree/execute POST
  * 
  */
+
 // Inject pgGateway into ctx
 router.use(PgGateway.init({
     onPaymentApproved: (gateway, order, response) => {
@@ -77,7 +78,5 @@ router.post('/paypal', PgGateway.REST_PAYPAL.members.create)
 router.get('/paypal/execute', PgGateway.REST_PAYPAL.members.execute)
   // Braintree
 router.post('/braintree/execute', PgGateway.BRAINTREE.members.execute)
-
-
 
 export default router
