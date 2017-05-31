@@ -7,6 +7,40 @@ Payment SDK of payment gateways
 - Braintree
 - Paypal REST API
 
+## Demo
+
+#### Method 1:
+
+Using Docker-Compose
+
+1) [download docker-compose](https://docs.docker.com/compose/install/)
+2) run `docker-compose build`
+3) run `docker-compose up`
+
+go to `http://localhost:3000` or `http://localhost:3000/check-payment`
+
+#### Method 2:
+
+node version: > 7.7
+1) prepare a redis server up and running, the example will look for 127.0.0.1:6379, go to `examples/payment/db/db.js` to change the host/port when needed
+```javascript 
+const client = redis.createClient({
+    host: process.env.DEMO_REDIS || '127.0.0.1', // demo, change if need
+    port: 6379  // demo port, change if need
+  })
+```
+2) run the example server
+```
+npm install
+npm run start:example
+```
+
+go to `http://localhost:3000` or `http://localhost:3000/check-payment`
+
+**Test Credit Cards**
+https://developers.braintreepayments.com/guides/credit-cards/testing-go-live/php
+
+
 ## How to use
 
 ```javascript

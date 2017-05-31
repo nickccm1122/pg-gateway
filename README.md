@@ -21,6 +21,7 @@ const client = redis.createClient({
 ```
 2) run the example server
 ```
+npm install
 npm run start:example
 ```
 
