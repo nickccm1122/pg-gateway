@@ -11,6 +11,16 @@ Payment SDK of payment gateways
 
 #### Method 1:
 
+Using Docker-Compose
+
+1) [download docker-compose](https://docs.docker.com/compose/install/)
+2) run `docker-compose build`
+3) run `docker-compose up`
+
+go to `http://localhost:3000` or `http://localhost:3000/check-payment`
+
+#### Method 2:
+
 node version: > 7.7
 1) prepare a redis server up and running, the example will look for 127.0.0.1:6379, go to `examples/payment/db/db.js` to change the host/port when needed
 ```javascript 
@@ -24,16 +34,6 @@ const client = redis.createClient({
 npm install
 npm run start:example
 ```
-
-go to `http://localhost:3000` or `http://localhost:3000/check-payment`
-
-#### Method 2:
-
-Using Docker
-
-1) [download docker-compose](https://docs.docker.com/compose/install/)
-2) run `docker-compose build`
-3) run `docker-compose up`
 
 go to `http://localhost:3000` or `http://localhost:3000/check-payment`
 
