@@ -3,20 +3,19 @@
         "allowUnknownTags": true,
         "dictionaries": ["jsdoc","closure"]
     },
-    "source": {
-        "include": [
-            "lib/**/index.js"
-            ],
-        "exclude": ["node_modules/"],
-        "includePattern": ".+\\.js(doc|x)?$",
-        "excludePattern": "(^|\\/|\\\\)_"
-    },
     "plugins": ["node_modules/jsdoc-babel"],
+    "babel": {
+        "presets": [ "env" ],
+        "plugins": [ 
+            "transform-object-rest-spread",
+            "transform-class-properties" ]
+    },
     "templates": {
         "cleverLinks": false,
         "monospaceLinks": false
     },
     "opts": {
-        "destination": "./.jsdoc/"          // same as -d ./out/
-    }
+        "destination": "./"          // same as -d ./out/
+    },
+    "include": ["src/*.js", "src/**.*.js"]
 }
