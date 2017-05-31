@@ -42,6 +42,14 @@
     <div class="container">
         <div class="row">
             <div class="col-xs-12 col-md-8 col-md-offset-2">
+                <ul class="nav nav-pill">
+                    <li role="navigation">
+                        <a href="/">Make Payment</a>
+                    </li>
+                    <li role="navigation">
+                        <a href="/check-payment">Check Payment</a>
+                    </li>
+                </ul>
                 <div id="success-lightbox"></div>
                 <div id="error-lightbox"></div>
                 <form id="payment-form" name="payment-form">
@@ -51,7 +59,7 @@
                             <div class="col-md-6">
                                 <h2>Order</h2>
                                 <div class="form-group">
-                                    <label for="user-name">Your Name</label>
+                                    <label for="user-name">Username</label>
                                     <input type="text" class="form-control" id="user-name" placeholder="Jr. Saving Jor" />
                                 </div>
                                 <div class="form-group">
@@ -166,6 +174,7 @@
         function submitFormViaPaypal(formData, cb) {
             clearLightBox()
             console.log(formData)
+            showMessage('success', 'Please wait...')
             $.post("/paypal", {
                     order: formData
                 })
@@ -179,17 +188,22 @@
 
         function submitFormViaBraintree(braintreeInstance, formData, cb) {
             clearLightBox()
+
             console.log('submitFormViaBraintree...')
             console.log(formData)
             braintreeInstance.tokenize(null, function(error, response) {
                 console.log(response)
                     // submit to server now
+                showMessage('success', 'Please wait...')
                 $.post("braintree/execute", {
                         nonce: response.nonce,
                         order: formData // todo
                     })
                     .done(function(data) {
-                        showMessage('success', `Response from server: ${JSON.stringify(data)}`)
+                        const message = '<p>' + 'All good!' + '</p>' +
+                        '<p>' + 'Your reference code is ' + data.refCode + '</p>' +
+                        '<p>' + 'Use your reference code and username to check the payment record.' + '</p>'
+                        showMessage('success', message)
                         cb()
                     });
             })

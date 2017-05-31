@@ -194,7 +194,7 @@ export class RestPaypalGateway extends BaseGateway {
       logger(approvedPayment)
       const result = await this.saveToDB(ctx, approvedPayment, order)
       
-      ctx.body = result ? result : {
+      ctx.body = result ? { refCode: result, message: 'Please use the refCode and username to check your payment, Go to http://localhost:3000/check-payment'} : {
         success: true
       }
     }

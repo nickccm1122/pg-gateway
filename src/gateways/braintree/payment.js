@@ -102,7 +102,10 @@ export class BraintreeGateway extends BaseGateway {
       logger(response)
       const result =  await this.saveToDB(ctx, response)
 
-      ctx.body =  result ? result : {
+      ctx.body =  result ? {
+        refCode: result, 
+        message: 'Please use the refCode and username to check your payment'
+      } : {
         success: true
       }
     } 

@@ -10,13 +10,23 @@
     <div class="container">
         <div class="row">
             <div class="col-xs-12 col-md-4 col-md-offset-4">
-                <form id="checking-form" name="checking-form" method="post">
+                <ul class="nav nav-pill">
+                    <li role="navigation">
+                        <a href="/">Make Payment</a>
+                    </li>
+                    <li role="navigation">
+                        <a href="/check-payment">Check Payment</a>
+                    </li>
+                </ul>
+                <div id="success-lightbox"></div>
+                <div id="error-lightbox"></div>
+                <form id="checking-form" name="checking-form">
                     <div class="panel panel-default">
                         <div class="panel-heading">Payment Checking</div>
                         <div class="panel-body">
                             <div class="form-group">
-                                <label for="userName">Your Name</label>
-                                <input type="text" class="form-control" id="userName" placeholder="Jr.Saving Jor" />
+                                <label for="user-name">Username</label>
+                                <input type="text" class="form-control" id="user-name" placeholder="Jr.Saving Jor" />
                             </div>
                             <div class="form-group">
                                 <label for="ref-code">Your ref code</label>
@@ -36,7 +46,85 @@
     <!-- scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script type="text/javascript">
+        function clearLightBox() {
+            var successLightbox = document.getElementById('success-lightbox')
+            var errorLightbox = document.getElementById('error-lightbox')
+
+            successLightbox.innerHTML = ''
+            errorLightbox.innerHTML = ''
+
+            return true;
+        }
+
+        function showMessage(type, message) {
+            clearLightBox()
+            var successLightbox = document.getElementById('success-lightbox')
+            var errorLightbox = document.getElementById('error-lightbox')
+            switch (type) {
+                case 'success':
+                    successLightbox.innerHTML = '<div class="alert alert-info" role="alert">' + message + '</div>'
+                    break;
+                case 'error':
+                    errorLightbox.innerHTML = '<div class="alert alert-danger" role="alert">' + message + '</div>'
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        function validateFields() {
+            var username = document.getElementById("user-name").value;
+            if (!username) return {
+                isValid: false,
+                message: 'Your username field is empty.'
+            }
+
+            var refCode = document.getElementById("ref-code").value;
+            if (!refCode) return {
+                isValid: false,
+                message: 'Your ref-code field is empty.'
+            }
+
+            return {
+                isValid: true,
+                username: username,
+                refCode: refCode
+            }
+        }
+
+        function postForm(formData) {
+            $.post('check-payment', {
+                form: formData
+            }).done(function(data) {
+                if (data.success) {
+                    var text = '<p>your order details is </p>' +
+                        '<p>Name: ' + data.order.username + '</p>' +
+                        '<p>Phone Number: ' + data.order.phoneNumber + '</p>' +
+                        '<p>Currency: ' + data.order.currency + '</p>' +
+                        '<p>Price: $' + data.order.price + '</p>'
+                        showMessage('success', text)
+                } else {
+                    var text = data.message
+                    showMessage('error', text)
+                }
+            })
+        }
+
+        function submitForm(event) {
+            event.preventDefault();
+            var result = validateFields()
+
+            if (result.isValid) {
+                showMessage('success', 'Waiting.....')
+                postForm(result)
+            } else {
+                showMessage('error', result.message)
+            }
+
+        }
+
         var checkingForm = document.querySelector('#checking-form');
+        checkingForm.addEventListener('submit', submitForm, false);
     </script>
 </body>
 
